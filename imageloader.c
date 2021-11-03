@@ -75,7 +75,13 @@ Image *readData(char *filename)
   fscanf(fh, "%s", str);
   max_range = atoi(str);
 
-  printf("width=%d height=%d max_range=%d\n", width, height, max_range);
+  if (max_range != 255)
+  {
+    printf("max range is supposed to be 255 but got  %d\n", max_range);
+    return NULL;
+  }
+
+  //printf("width=%d height=%d max_range=%d\n", width, height, max_range);
 
 
   image = (Image*)malloc(sizeof(Image));
@@ -89,6 +95,11 @@ Image *readData(char *filename)
   image -> rows = height;
   image -> cols = width;
   image->image = (Color**)malloc(sizeof(Color*)*width*height);
+  if (image->image == NULL)
+  {
+    printf("Failed to allocate mem\n");
+    return NULL;
+  }
 
   for (int h=0; h<height; h++)
   {
@@ -96,6 +107,13 @@ Image *readData(char *filename)
     {
         char str[5];
         (image->image)[image->cols*h+w] = (Color*)malloc(sizeof(Color));
+
+        if ((image->image)[image->cols*h+w] == NULL)
+        {
+          printf("Failed to alloc mem for a pixel\n");
+          return NULL;
+        }
+
         if (fscanf(fh, "%s", str) == 1)
         {
           //printf("R: %s\n", str);
@@ -159,8 +177,13 @@ void writeData(Image *image)
   {
     for (int w = 0; w < image->cols; w++)
     {
-      printf("%d %d %d   ", (image->image)[h*image->cols + w]->R, (image->image)[h*image->cols + w]->G, (image->image)[h*image->cols + w]->B);
+      printf("%3d %3d %3d", (image->image)[h*image->cols + w]->R, (image->image)[h*image->cols + w]->G, (image->image)[h*image->cols + w]->B);
+      if (w != image->cols -1)
+      {
+        printf("   ");
+      }
     }
+
     printf("\n");
   }
 }
@@ -175,7 +198,6 @@ void freeImage(Image *image)
     {
       free((image->image)[h*image->cols + w]);
     }
-    printf("\n");
   }
   free(image->image);
   free(image);
